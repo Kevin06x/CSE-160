@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Draw a point (1)</title>
+  </head>
+
+  <body onload="main()">
+    <div style="display: flex; align-items: flex-start; gap: 20px;">
+      <div>
+        <canvas id="webgl" width="400" height="400">
+          Please use a browser that supports "canvas"
+        </canvas>
+        <br>
+
+        <label>Red</label>
+        <input type="range" id="red" min="0" max="100" value="100" style="width: 75px"/>
+
+        <label>Green</label>
+        <input type="range" id="green" min="0" max="100" value="100" style="width: 75px"/>
+        
+        <label>Blue</label>
+        <input type="range" id="blue" min="0" max="100" value="100" style="width: 75px"/>
+
+        <br>
+        <label>Size</label>
+        <input type="range" id="size" min="5" max="40" value="15"/>
+
+        <br>
+        <label>Segments</label>
+        <input type="range" id="segments" min="3" max="50" value="10">
+
+        <br><br>
+        <button onclick="setPoint()">Point</button>
+        <button onclick="setTriangle()">Triangle</button>
+        <button onclick="setCircle()">Circle</button>
+        <button onclick="clearCanvas()">Clear Canvas</button>
+        <button onclick="undo()">Undo</button>
+        <button onclick="redo()">Redo</button>
+
+        <h4 style=" max-width: 400px; padding-left: 10px; margin-top: 15px; font-weight: normal;">
+          Note: Added Undo and Redo button since I found when testing the painting,
+          I would make mistakes and be forced to clear canvas instead of going back a step.
+          Also cleaned up the UI so it'd be a little more organized!
+        </h4>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+      <img src="Drawing.jpg" style="width:400px; height:400px">
+      <button onclick="drawImage()" style="margin-top: 10px;">Draw picture</button>
+      </div>
+    </div>
+
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="HelloPoint1.js"></script>
+    <script src="Shapes.js"></script>
+  </body>
+</html>
