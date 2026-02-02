@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Assignment 2</title>
+  </head>
+
+  <body onload="main()">
+    <div style="display: flex; align-items: flex-start; gap: 20px;">
+      <div>
+        <canvas id="webgl" width="400" height="400">
+          Please use a browser that supports "canvas"
+        </canvas>
+        <div id="fps">FPS: </div>
+      </div>
+      <div>
+        Global Rotation:
+        <input type="range" min="-180" max="180" value="0"
+          oninput="gAnimalGlobalRotation=this.value; renderScene();">
+        <br><br>
+
+        Upper Arm Left:
+        <input type="range" min="-45" max="45" value="0"
+          oninput="gUpperArmAngleL=this.value; renderScene();">
+        <br><br>
+
+        Lower Arm Left:
+        <input type="range" min="-120" max="0" value="-60"
+          oninput="gLowerArmAngleL=this.value; renderScene();">
+        <br><br>
+
+        Hand Left:
+        <input type="range" min="-10" max="10" value="0"
+          oninput="gHandAngleL=this.value; renderScene();">
+        <br><br>
+
+        Upper Arm Right:
+        <input type="range" min="-45" max="45" value="0"
+          oninput="gUpperArmAngleR=this.value; renderScene();">
+        <br><br>
+
+        Lower Arm Right:
+        <input type="range" min="0" max="120" value="60"
+          oninput="gLowerArmAngleR=this.value; renderScene();">
+        <br><br>
+
+        Hand Right:
+        <input type="range" min="-10" max="10" value="0"
+          oninput="gHandAngleR=this.value; renderScene();">
+        <br><br>
+
+        <button onclick="gAnimate = !gAnimate">Toggle Animation</button>
+      </div>
+    </div>
+
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix.js"></script>
+    <script src="BlockyAnimal.js"></script>
+    <script src="Shapes.js"></script>
+  </body>
+</html>

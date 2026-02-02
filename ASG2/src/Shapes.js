@@ -39,53 +39,62 @@ function drawTriangle(vertices) {
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-// Cubes
-class Cube {
-  constructor() {
-    this.color = [1, 1, 1, 1];
-    this.matrix = new Matrix4();
-  }
+function drawCube(M, color) {
+  gl.uniformMatrix4fv(u_ModelMatrix, false, M.elements);
+  gl.uniform4f(u_FragColor, color[0], color[1], color[2], color[3]);
 
-  render() {
-    gl.uniform4f(
-      u_FragColor,
-      this.color[0],
-      this.color[1],
-      this.color[2],
-      this.color[3]
+  const vertices = [
+    // front
+    0,0,0,  1,0,0,  1,1,0,
+    0,0,0,  1,1,0,  0,1,0,
+    // back
+    0,0,1,  0,1,1,  1,1,1,
+    0,0,1,  1,1,1,  1,0,1,
+    // left
+    0,0,0,  0,1,1,  0,0,1,
+    0,0,0,  0,1,0,  0,1,1,
+    // right
+    1,0,0,  1,0,1,  1,1,1,
+    1,0,0,  1,1,1,  1,1,0,
+    // top
+    0,1,0,  1,1,1,  0,1,1,
+    0,1,0,  1,1,0,  1,1,1,
+    // bottom
+    0,0,0,  0,0,1,  1,0,1,
+    0,0,0,  1,0,1,  1,0,0
+  ];
+
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(a_Position);
+  gl.drawArrays(gl.TRIANGLES, 0, 36);
+}
+
+function drawCone(M, color) {
+  gl.uniformMatrix4fv(u_ModelMatrix, false, M.elements);
+  gl.uniform4f(u_FragColor, ...color);
+
+  const verts = [];
+  const slices = 20;
+
+  for (let i = 0; i < slices; i++) {
+    let a = (i / slices) * 2 * Math.PI;
+    let b = ((i + 1) / slices) * 2 * Math.PI;
+
+    verts.push(
+      0, 1, 0,
+      Math.cos(a), 0, Math.sin(a),
+      Math.cos(b), 0, Math.sin(b)
     );
-
-    // Apply model matrix
-    gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
-
-    // FRONT
-    drawTriangle3D([0,0,0, 1,0,0, 1,1,0]);
-    drawTriangle3D([0,0,0, 1,1,0, 0,1,0]);
-
-    // BACK
-    drawTriangle3D([0,0,1, 0,1,1, 1,1,1]);
-    drawTriangle3D([0,0,1, 1,1,1, 1,0,1]);
-
-    // LEFT
-    drawTriangle3D([0,0,0, 0,1,1, 0,0,1]);
-    drawTriangle3D([0,0,0, 0,1,0, 0,1,1]);
-
-    // RIGHT
-    drawTriangle3D([1,0,0, 1,0,1, 1,1,1]);
-    drawTriangle3D([1,0,0, 1,1,1, 1,1,0]);
-
-    // TOP
-    drawTriangle3D([0,1,0, 1,1,1, 0,1,1]);
-    drawTriangle3D([0,1,0, 1,1,0, 1,1,1]);
-
-    // BOTTOM
-    drawTriangle3D([0,0,0, 0,0,1, 1,0,1]);
-    drawTriangle3D([0,0,0, 1,0,1, 1,0,0]);
   }
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+  gl.drawArrays(gl.TRIANGLES, 0, verts.length / 3);
 }
 
 // Triangles
-
 class Triangle {
   constructor(position, color, size) {
     this.position = position;
