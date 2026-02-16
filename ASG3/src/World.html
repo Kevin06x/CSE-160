@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Assignment 3</title>
+  </head>
+
+  <body onload="main()">
+    <div style="display: flex; align-items: flex-start; gap: 20px;">
+      <div>
+        <canvas id="webgl" width="1000" height="650">
+            browser that supports "canvas"
+        </canvas>
+      </div>
+      <div style="max-width: 300px;">
+        <h1><u>Key Binds</u></h1> 
+        <h2> W A S D - Move<br>
+            Q E - Pan Left & Right<br>
+            F - Add Block<br>
+            R - Remove Block<br>
+            Space - Move Up<br>
+            Ctrl - Move Down<br>
+            Click - Lock Mouse<br>
+            Esc - Unlock Mouse </h2>
+      </div> 
+      <div id="fps" style="position:absolute; top:10px; left:10px; color:white;"></div>
+    </div>
+    <div>
+      <h1>There seems to be a Koala nearby... walk up to it and see what's wrong.</h3>
+      <h1 id = "gameMessage"></h1>
+
+      <h3>Note: I capped the FPS to 60 as it was much more stable and the overall performance seems pretty good.
+        <br> If you click within the canvas, you are able to lock your mouse and have the mouse rotation. Press [Esc] to reverse it.
+        <br> I also added extra features like [Space] for elevation and [Ctrl] for lowering.
+        <br> The story of this game is to get to the lost Koala and then bring him to the exit.
+      </h3>
+    </div>
+
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix.js"></script>
+    <script src="Camera.js"></script>
+    <script src="World.js"></script>
+    <script src="Shapes.js"></script>
+  </body>
+</html>

@@ -39,7 +39,7 @@ function drawTriangle(vertices) {
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-function drawCube(M, color) {
+function drawCubeK(M, color) {
   gl.uniformMatrix4fv(u_ModelMatrix, false, M.elements);
   gl.uniform4f(u_FragColor, color[0], color[1], color[2], color[3]);
 
