@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Assignment 4</title>
+  </head>
+
+  <body onload="main()">
+    <div style="display: flex; align-items: flex-start; gap: 20px;">
+      <div>
+        <canvas id="webgl" width="1000" height="650">
+            browser that supports "canvas"
+        </canvas>
+      </div>
+      <div style="max-width: 300px;">
+        <h1><u>Key Binds</u></h1> 
+        <h2> W A S D - Move<br>
+            Q E - Pan Left & Right<br>
+            F - Add Block<br>
+            R - Remove Block<br>
+            Space - Move Up<br>
+            Ctrl - Move Down<br>
+            Click - Lock Mouse<br>
+            Esc - Unlock Mouse </h2>
+        <br>
+          <button id="Lighting">Lighting: ON</button>
+          <button id="NormalViz">Normal Visualization: OFF</button>
+          <button id="PointLight">Point Light: ON</button>
+          <button id="SpotLight">Spot Light: ON</button>
+          <br><br>
+          <label>Light Angle:
+            <input type="range" id="sliderLight" min="0" max="360" value="0" step="1">
+          </label>
+          <br>
+          <label>Light Color:
+            <input type="range" id="sliderLightColor" min="0" max="100" value="100" step="1">
+          </label>
+        <br><br>
+
+      </div> 
+      <div id="fps" style="position:absolute; top:10px; left:10px; color:white;"></div>
+    </div>
+
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix.js"></script>
+    <script src="Camera.js"></script>
+    <script src="Model.js"></script>
+    <script src="World.js"></script>
+    <script src="Shapes.js"></script>
+  </body>
+</html>
+
