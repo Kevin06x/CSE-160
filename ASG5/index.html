@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment 5</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1a2e;
+      overflow: hidden;
+      font-family: monospace;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Loading */
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #1a1a2e;
+      color: #eee;
+      font-size: 14px;
+      gap: 12px;
+      z-index: 10;
+    }
+    #loading .progress {
+      border: 1px solid #555;
+      width: 50vw;
+      max-width: 320px;
+    }
+    #loading .progressbar {
+      margin: 2px;
+      background: #7ec8e3;
+      height: 10px;
+      transform-origin: top left;
+      transform: scaleX(0);
+      transition: transform .1s linear;
+    }
+
+    /* Info panel */
+    #info {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      color: #ccc;
+      font-size: 12px;
+      line-height: 1.7;
+      background: rgba(0,0,0,.55);
+      padding: 10px 14px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+    <div id="loading">
+        <div>Loading textures…</div>
+        <div class="progress"><div class="progressbar" id="progressbar"></div></div>
+    </div>
+    <div id="info">
+        Left-drag: orbit &nbsp;|&nbsp;
+        Right-drag: pan &nbsp;|&nbsp;
+        Scroll: zoom <br>
+        Scene: The Witch is brewing a potion whilst bending reality, but what does she need the bodies for?
+    </div>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    function main() {
+        // Renderer
+        const canvas = document.querySelector('#c');
+        const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+
+        // Cam
+        const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 100);
+        camera.position.z = 4;
+
+        const scene = new THREE.Scene();
+        const skyLoader = new THREE.TextureLoader();
+        skyLoader.load('qwantani_dusk_2_puresky.jpg',
+          (skyTex) => {
+              skyTex.mapping = THREE.EquirectangularReflectionMapping;
+              skyTex.colorSpace = THREE.SRGBColorSpace;
+              scene.background = skyTex;
+          }
+        );
+
+        const controls = new OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.target.set(0, 1, 0);
+
+        // Directional light
+        const dirLight = new THREE.DirectionalLight(0x8888ff, 0.3);
+        dirLight.position.set(-5, 10, 5);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // Hemispher light
+        const hemiLight = new THREE.HemisphereLight(0x222244, 0x111111, 0.4);
+        scene.add(hemiLight);
+
+        // Point light
+        const cauldronGlow = new THREE.PointLight(0x00ff88, 60, 12);
+        cauldronGlow.position.set(0, 1.2, 0);
+        scene.add(cauldronGlow);
+
+        const torchLight = new THREE.PointLight(0xff6600, 40, 8);
+        torchLight.position.set(4, 1.5, -2);
+        scene.add(torchLight);
+
+        const loading = document.querySelector('#loading');
+        const progressBar = document.querySelector('#progressbar');
+        const loadManager = new THREE.LoadingManager();
+        const loader = new THREE.TextureLoader(loadManager);
+
+        loadManager.onProgress = (_url, loaded, total) => {
+            progressBar.style.transform = `scaleX(${loaded / total})`;
+        };
+        loadManager.onLoad = () => {
+            loading.style.display = 'none';
+        };
+
+        function loadTex(url) {
+            const t = loader.load(url);
+            t.colorSpace = THREE.SRGBColorSpace;
+            return t;
+        }
+        
+        const stoneTex = loadTex('stone.jpg');
+        const woodTex = loadTex('wood.jpg');
+        const faceTex = [
+            'https://picsum.photos/seed/face0/256/256',
+            'https://picsum.photos/seed/face1/256/256',
+            'https://picsum.photos/seed/face2/256/256',
+            'https://picsum.photos/seed/face3/256/256',
+            'https://picsum.photos/seed/face4/256/256',
+            'https://picsum.photos/seed/face5/256/256',
+        ].map(u => loadTex(u));
+
+      const grassTex = loadTex('grass.jpg');
+      grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
+      grassTex.repeat.set(10, 10);
+
+      // Ground
+      const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(60, 60),
+        new THREE.MeshPhongMaterial({ map: grassTex })
+      );
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      // Helper for shadows
+      function shadow(mesh) {
+        mesh.castShadow    = true;
+        mesh.receiveShadow = true;
+        return mesh;
+      }
+
+      // 3 Spinning Cubes
+      const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+      const cubeLeft = shadow(new THREE.Mesh(boxGeo,
+        new THREE.MeshPhongMaterial({ map: stoneTex })));
+      cubeLeft.position.set(-2.5, 3, 1);
+      scene.add(cubeLeft);
+
+      const faceMaterials = faceTex.map(t => new THREE.MeshPhongMaterial({ map: t }));
+      const cubeCenter = shadow(new THREE.Mesh(boxGeo, faceMaterials));
+      cubeCenter.position.set(0, 3, 1);
+      scene.add(cubeCenter);
+
+      const filteredTex = loadTex('https://picsum.photos/seed/brickwall/256/256');
+      filteredTex.minFilter = THREE.LinearMipmapLinearFilter;
+      filteredTex.magFilter = THREE.LinearFilter;
+      filteredTex.wrapS = filteredTex.wrapT = THREE.RepeatWrapping;
+      filteredTex.repeat.set(2, 2);
+      filteredTex.needsUpdate = true;
+      const cubeRight = shadow(new THREE.Mesh(boxGeo,
+        new THREE.MeshPhongMaterial({ map: filteredTex })));
+      cubeRight.position.set(2.5, 3, 1);
+      scene.add(cubeRight);
+
+      const spinCubes = [cubeLeft, cubeCenter, cubeRight];
+
+      // Gravestones kinda
+      function makeGravestone(x, z) {
+        const base = shadow(new THREE.Mesh(
+          new THREE.BoxGeometry(0.6, 1.2, 0.15),
+          new THREE.MeshPhongMaterial({ map: stoneTex })
+        ));
+        base.position.set(x, 0.6, z);
+        scene.add(base);
+
+        const cap = shadow(new THREE.Mesh(
+          new THREE.CylinderGeometry(0.3, 0.3, 0.15, 16),
+          new THREE.MeshPhongMaterial({ map: stoneTex })
+        ));
+        cap.rotation.x = Math.PI / 2;
+        cap.position.set(x, 1.25, z);
+        scene.add(cap);
+      }
+      makeGravestone(-3,  1);
+      makeGravestone(-4.5, -1);
+      makeGravestone( 4,   0); 
+      makeGravestone( 5.5, -2);
+
+      // Cauldron
+      const cauldron = shadow(new THREE.Mesh(
+        new THREE.CylinderGeometry(0.7, 0.5, 0.8, 20),
+        new THREE.MeshPhongMaterial({ color: 0x222222, shininess: 80 })
+      ));
+      cauldron.position.set(0, 0.4, 0);
+      scene.add(cauldron);
+
+      // Water in Cauldron
+      const brew = shadow(new THREE.Mesh(
+        new THREE.SphereGeometry(0.55, 20, 20),
+        new THREE.MeshPhongMaterial({ color: 0x00ff88, emissive: 0x004422, shininess: 120 })
+      ));
+      brew.scale.y = 0.25;
+      brew.position.set(0, 0.85, 0);
+      scene.add(brew);
+
+      // Tree Trunk
+      const trunkMat = new THREE.MeshPhongMaterial({map: woodTex });
+      const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 3, 10);
+      [[-7, -3], [7, -4], [-6, 4]].forEach(([x, z]) => {
+        const trunk = shadow(new THREE.Mesh(trunkGeo, trunkMat));
+        trunk.position.set(x, 1.5, z);
+        scene.add(trunk);
+
+        // Tree Leaves
+        const crown = shadow(new THREE.Mesh(
+          new THREE.ConeGeometry(1.5, 3.5, 8),
+          new THREE.MeshPhongMaterial({ color: 0x1a3a1a })
+        ));
+        crown.position.set(x, 4.5, z);
+        scene.add(crown);
+      });
+
+      // Moon
+      const moon = new THREE.Mesh(
+        new THREE.SphereGeometry(2, 64, 64),
+        new THREE.MeshPhongMaterial({color: 0xffffcc, emissive: 0x888866})
+      );
+      moon.position.set(-15, 20, -30);
+      scene.add(moon);
+
+      const moonLight = new THREE.DirectionalLight(0xaabbff, 3.5);
+      moonLight.position.set(-15, 20, -30);
+      moonLight.castShadow = true;
+      scene.add(moonLight);
+
+      // Floating Crystal Ball
+      const crystal = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 32, 32),
+        new THREE.MeshPhongMaterial({
+          color: 0xaaddff, emissive: 0x224466,
+          transparent: true, opacity: 0.75, shininess: 200
+        })
+      );
+      crystal.position.set(-1, 2.5, -1.25);
+      scene.add(crystal);
+
+      // Fence Posts
+      const FENCE = 9;
+      const postMat = new THREE.MeshPhongMaterial({ map: woodTex });
+      const postGeo = new THREE.BoxGeometry(0.12, 1.2, 0.12);
+      const railGeoX = new THREE.BoxGeometry(FENCE * 2, 0.08, 0.08);
+      const railGeoZ = new THREE.BoxGeometry(0.08, 0.08, FENCE * 2);
+
+      [-FENCE, FENCE].forEach(z => {
+        for (let x =-FENCE; x <= FENCE; x += 1.5) {
+          const post = shadow(new THREE.Mesh(postGeo, postMat));
+          post.position.set(x, 0.6, z);
+          scene.add(post);
+        }
+        [1.0, 0.35].forEach(y => {
+          const rail = shadow(new THREE.Mesh(railGeoX, postMat));
+          rail.position.set(0, y, z);
+          scene.add(rail);
+        });
+      });
+
+      [-FENCE, FENCE].forEach(x => {
+        for (let z = -FENCE; z <= FENCE; z += 1.5) {
+          const post = shadow(new THREE.Mesh(postGeo, postMat));
+          post.position.set(x, 0.6, z);
+          scene.add(post);
+        }
+
+      [1.0, 0.35].forEach(y => {
+          const rail = shadow(new THREE.Mesh(railGeoZ, postMat));
+          rail.position.set(x, y, 0);
+          scene.add(rail);
+        });
+      });
+
+      // Pumpkins
+      const pumpkinMat = new THREE.MeshPhongMaterial({ color: 0xff6600 });
+      [[2, 0, 2.5], [-2, 0, 3], [3.5, 0, -1]].forEach(([x, y, z]) => {
+        const p = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), pumpkinMat));
+        p.scale.y = 0.75;
+        p.position.set(x, 0.26, z);
+        scene.add(p);
+
+        // stem
+        const stem = shadow(new THREE.Mesh(
+          new THREE.CylinderGeometry(0.03, 0.05, 0.2, 6),
+          new THREE.MeshPhongMaterial({ color: 0x336600 })
+        ));
+        stem.position.set(x, 0.56, z);
+        scene.add(stem);
+      });
+
+      // Witch Model
+      const gltfLoader = new GLTFLoader(loadManager);
+      gltfLoader.load('witch.glb', (gltf) => {
+        const model = gltf.scene;
+        model.position.set(0, 0, -1.2);
+        model.scale.set(1, 1, 1);
+        model.traverse(n => { if (n.isMesh) { n.castShadow = true; } });
+        scene.add(model);
+      }, undefined, (err) => console.error('witch.glb failed:', err));
+
+      // Resize helper
+      function resizeRendererToDisplaySize(renderer) {
+        const c = renderer.domElement;
+        const needResize = c.width !== c.clientWidth || c.height !== c.clientHeight;
+        if (needResize) renderer.setSize(c.clientWidth, c.clientHeight, false);
+        return needResize;
+      }
+
+      // Render
+      function render(time) {
+        time *= 0.001;
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        // Spin the three demo cubes
+        spinCubes.forEach((cube, ndx) => {
+          const speed = 1 + ndx * 0.1;
+          cube.rotation.x = time * speed;
+          cube.rotation.y = time * speed;
+        });
+
+        // Float the crystal ball up and down
+        crystal.position.y = 1 + Math.sin(time * 1.5) * 0.4;
+        crystal.rotation.y = time * 0.8;
+
+        // Flicker the cauldron glow
+        cauldronGlow.intensity = 55 + Math.sin(time * 7) * 15;
+
+        // Flicker torch in pumpkin
+        torchLight.intensity = 35 + Math.sin(time * 11 + 1) * 10;
+
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    }
+    main();
+  </script>
+</body>
+</html>
